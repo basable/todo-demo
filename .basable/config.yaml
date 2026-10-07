@@ -1,0 +1,16 @@
+apiVersion: basable.com/v1
+kind: TenantConfig
+spec:
+  environments:
+    preview:
+      virtual-cluster:
+        cpu: "2000m"
+        memory: "4Gi"
+        storage: "10Gi"
+        maxPods: 30
+    live:
+      virtual-cluster:
+        cpu: "2000m"
+        memory: "4Gi"
+        storage: "10Gi"
+        maxPods: 30

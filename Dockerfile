@@ -1,0 +1,14 @@
+# Build stage
+FROM golang:1.25-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o /out/app .
+
+# Production stage — distroless runs as the non-root user 65532
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=build /out/app /app
+USER 65532:65532
+EXPOSE 8080
+ENTRYPOINT ["/app"]

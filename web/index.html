@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todos</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Todos</h1>
+    <form id="add-form">
+      <input id="title" type="text" placeholder="What needs to be done?" maxlength="200" autocomplete="off" required>
+      <button type="submit">Add</button>
+    </form>
+    <p id="error" class="error" hidden></p>
+    <ul id="list"></ul>
+    <p id="summary" class="summary"></p>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
