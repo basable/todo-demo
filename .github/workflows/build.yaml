@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  push:
+    branches: [dev, main]
+
+env:
+  REGISTRY: registry.basable.com
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image name
+        run: |
+          repo="${GITHUB_REPOSITORY##*/}"
+          echo "IMAGE_NAME=abandon-above-tonight/${repo,,}" >> "$GITHUB_ENV"
+
+      - name: Lint manifests
+        run: |
+          if grep -rn ':latest' k8s/; then echo "k8s/ must not use :latest tags" >&2; exit 1; fi
+          kustomize build --enable-helm k8s/ > /dev/null
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to the platform registry
+        run: |
+          token="$(curl -fsSL -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${REGISTRY}" | jq -r .value)"
+          echo "${token}" | docker login "${REGISTRY}" --username oidc --password-stdin
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Render manifests
+        run: |
+          cd k8s
+          kustomize edit set image "${REGISTRY}/${IMAGE_NAME}=${REGISTRY}/${IMAGE_NAME}@${{ steps.build.outputs.digest }}"
+          kustomize build --enable-helm . > ../rendered-manifests.yaml
+
+      - name: Upload rendered manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-manifests
+          path: rendered-manifests.yaml
+          retention-days: 7

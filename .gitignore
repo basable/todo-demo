@@ -1,0 +1,10 @@
+# Build output
+/todo-demo
+/app
+/out/
+*.exe
+*.test
+*.out
+
+# Local env
+.env
