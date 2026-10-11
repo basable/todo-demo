@@ -4,13 +4,13 @@ spec:
   environments:
     preview:
       virtual-cluster:
-        cpu: "2000m"
-        memory: "4Gi"
-        storage: "10Gi"
+        cpu: "1000m"
+        memory: "2Gi"
+        storage: "1Gi"
         maxPods: 30
     live:
       virtual-cluster:
-        cpu: "2000m"
-        memory: "4Gi"
-        storage: "10Gi"
+        cpu: "1000m"
+        memory: "2Gi"
+        storage: "1Gi"
         maxPods: 30

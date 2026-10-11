@@ -1,10 +1,8 @@
-# Build output
-/todo-demo
-/app
-/out/
-*.exe
-*.test
-*.out
+# Output of a build outside Docker: the server, object files, and the
+# preprocessed TODODB.cob that ocesql writes
+/todo-server
+*.o
+*.cob
 
 # Local env
 .env

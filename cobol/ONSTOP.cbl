@@ -1,0 +1,43 @@
+      *================================================================*
+      * ONSTOP - WHAT TO DO WHEN KUBERNETES SAYS STOP.                 *
+      *                                                                *
+      * KUBERNETES STOPS A POD BY SENDING ITS MAIN PROCESS THE SIGNAL  *
+      * SIGTERM. TODOSRV HANDS THIS PROGRAM TO THE C LIBRARY'S         *
+      * SIGNAL() AS THE ONE TO RUN WHEN THAT HAPPENS (AND FOR CTRL-C). *
+      *                                                                *
+      * IT ENDS THE PROCESS AT ONCE, WITH EXIT STATUS 0. THERE IS      *
+      * NOTHING TO SAVE: EVERY CHANGE IS COMMITTED BEFORE ITS RESPONSE *
+      * IS SENT, THE KERNEL CLOSES THE SOCKETS, AND POSTGRESQL ROLLS   *
+      * BACK THE EMPTY TRANSACTION THAT WAS OPEN.                      *
+      *                                                                *
+      * WITHOUT IT, THE COBOL RUNTIME'S OWN HANDLER WOULD SHUT ITSELF  *
+      * DOWN AND THEN RE-SEND SIGTERM, WHICH THE FIRST PROCESS IN A    *
+      * CONTAINER IGNORES, AND THE SERVER WOULD CARRY ON WITHOUT A     *
+      * RUNTIME UNTIL IT CRASHED.                                      *
+      *================================================================*
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. ONSTOP.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER. LINUX-X86-64.
+       OBJECT-COMPUTER. LINUX-X86-64.
+
+      *    THE C LIBRARY ALSO PASSES THE SIGNAL'S NUMBER (15 FOR
+      *    SIGTERM). EITHER SIGNAL MEANS THE SAME HERE, SO THE PROGRAM
+      *    TAKES NO PARAMETERS AND THE NUMBER GOES UNREAD.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      *    0 TELLS KUBERNETES THE SERVER STOPPED AS ASKED.
+       01  WS-EXIT-STATUS              BINARY-LONG VALUE 0.
+
+       PROCEDURE DIVISION.
+       0000-MAIN.
+      *    QUICK_EXIT ENDS THE PROCESS RIGHT HERE, WITHOUT RUNNING ANY
+      *    CLEAN-UP CODE THAT A SIGNAL MAY HAVE INTERRUPTED HALFWAY; THE
+      *    C STANDARD NAMES IT AS SAFE TO CALL FROM A SIGNAL HANDLER.
+      *    IT NEVER RETURNS, AND HAS NO RESULT ("RETURNING OMITTED").
+           CALL 'quick_exit' USING BY VALUE WS-EXIT-STATUS
+               RETURNING OMITTED
+           END-CALL
+           GOBACK.

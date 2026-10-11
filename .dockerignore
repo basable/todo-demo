@@ -1,5 +1,7 @@
-.git
-.github
-k8s
-.basable
-*.md
+# Only the COBOL sources, the web files and the end-to-end test client go
+# into a build context; everything else stays out.
+*
+!cobol/
+!copybooks/
+!web/
+!test/
