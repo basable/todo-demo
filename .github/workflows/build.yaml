@@ -41,10 +41,19 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+      - name: Build and push the site
+        id: site
+        uses: docker/build-push-action@v6
+        with:
+          file: Dockerfile.site
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-site:${{ github.sha }}
+
       - name: Render manifests
         run: |
           cd k8s
           kustomize edit set image "${REGISTRY}/${IMAGE_NAME}=${REGISTRY}/${IMAGE_NAME}@${{ steps.build.outputs.digest }}"
+          kustomize edit set image "${REGISTRY}/${IMAGE_NAME}-site=${REGISTRY}/${IMAGE_NAME}-site@${{ steps.site.outputs.digest }}"
           kustomize build --enable-helm . > ../rendered-manifests.yaml
 
       - name: Upload rendered manifests

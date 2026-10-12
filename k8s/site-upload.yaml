@@ -1,0 +1,53 @@
+# Uploads the page into the folder the deploy names for this commit
+# (OBJECT_STORAGE_SITE_FOLDER_PLACEHOLDER becomes site/<commit>/). The
+# platform serves "/" from that folder once the deploy reaches deployed; the
+# HTTPRoute sends only /api to the server. Assets go first and index.html
+# last, so a folder with an index.html is always complete.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: site-upload
+  annotations:
+    basable.com/apply-wave: "-1"
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: upload
+          image: registry.basable.com/abandon-above-tonight/todo-demo-site
+          envFrom:
+            - secretRef:
+                name: object-storage
+          env:
+            - name: HOME
+              value: /tmp
+            - name: AWS_REQUEST_CHECKSUM_CALCULATION
+              value: when_required
+            - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+              value: when_required
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              aws configure set default.s3.addressing_style path
+              dest="s3://$S3_PUBLIC_BUCKET/OBJECT_STORAGE_SITE_FOLDER_PLACEHOLDER"
+              aws s3 sync /site "$dest" --exclude index.html --cache-control "public, max-age=300"
+              aws s3 cp /site/index.html "${dest}index.html" --cache-control no-cache
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"

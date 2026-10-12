@@ -8,9 +8,14 @@ spec:
         memory: "2Gi"
         storage: "1Gi"
         maxPods: 30
+      # The page (web/) is served from the environment's public bucket.
+      objectStorage:
+        website: true
     live:
       virtual-cluster:
         cpu: "1000m"
         memory: "2Gi"
         storage: "1Gi"
         maxPods: 30
+      objectStorage:
+        website: true

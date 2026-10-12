@@ -1,3 +1,6 @@
+# Only the API: the platform answers every other path from the page in the
+# public bucket (objectStorage.website in .basable/config.yaml). A rule here
+# for "/" would take the page away from the bucket.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -13,7 +16,7 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /
+            value: /api
       backendRefs:
         - name: app
           port: 80

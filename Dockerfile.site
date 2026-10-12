@@ -1,0 +1,6 @@
+# The page, served from the environment's public bucket rather than by the
+# server: this image only carries web/ to the upload Job
+# (k8s/site-upload.yaml), which copies it into the bucket with the AWS CLI.
+FROM amazon/aws-cli:2.37.0
+COPY web/ /site
+USER 1000

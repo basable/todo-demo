@@ -36,6 +36,12 @@ a public demo: a title is kept to at most 64 bytes, cut between characters.
   startup with ordinary COBOL file I/O, tell the time, write Go-style log lines,
   and end the process cleanly when Kubernetes sends SIGTERM.
 
+On Basable the page itself is not served by the COBOL server: each deploy
+uploads `web/` into the environment's public bucket (`Dockerfile.site`, the
+`site-upload` Job in `k8s/`), the platform serves `/` from there, and the
+HTTPRoute sends only `/api` to the server. The server still answers `web/`
+itself when run on its own, as the test does.
+
 No C, shell or other language is involved at runtime. The only foreign code is
 what COBOL calls: the C library for sockets, libpq underneath the SQL
 preprocessor, and json-c underneath `JSON GENERATE`.
